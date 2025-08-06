@@ -59,7 +59,7 @@ def train_model(args: Namespace):
     from lightning import Trainer
 
     logging.info("Done.")
-uv a
+    
     # Load datasets
     logging.info("Loading Xenium datasets...")
     dm = SeggerDataModule(

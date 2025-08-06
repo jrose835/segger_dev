@@ -52,6 +52,7 @@ def train_model(args: Namespace):
     # Import packages
     logging.info("Importing packages...")
     import torch
+    from segger.models.segger_model import Segger
     from segger.training.train import LitSegger
     from segger.training.segger_data_module import SeggerDataModule
     from segger.prediction.predict_parquet import load_model
@@ -92,15 +93,19 @@ def train_model(args: Namespace):
             print("Using scRNAseq embeddings as node features, number of features: ", num_tx_features)
         num_bd_features = dm.train[0].x_dict["bd"].shape[1]
         print("Number of boundary node features: ", num_bd_features)
-        ls = LitSegger(
-            is_token_based=is_token_based,
-            num_node_features={"tx": num_tx_features, "bd": num_bd_features},
+        
+        # Create the Segger model first
+        segger_model = Segger(
+            num_tx_tokens=num_tx_features if is_token_based else 0,  # Only pass num_tx_tokens if token-based
             init_emb=args.init_emb,
             hidden_channels=args.hidden_channels,
             out_channels=args.out_channels,
             heads=args.heads,
             num_mid_layers=args.num_mid_layers,
-            aggr="sum",  # Hard-coded value
+        )
+        # Create LitSegger wrapper with the model
+        ls = LitSegger(
+            model=segger_model,
             learning_rate=args.learning_rate,
         )
     logging.info("Done.")
